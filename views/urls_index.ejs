@@ -1,18 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>TinyApp</title>
+  <% include ../views/partials/_header.ejs %>
 </head>
+
 <body>
 
-    <%= urls.urlDatabase %> --
-    <% for (var key in templateVars) { %>
-    <% var obj = templateVars[key]; %>
-  <% for (var prop in obj){ %>
-    <%= prop + " - " + obj[prop]; %>
-  <% } %>
-<% } %>
+<table border=1>
 
+  <% for (var key in urls) { %>
+    <% var obj = urls[key]; %>
+      <%- "<tr><td>" + urls[key] + "</td><td>" + key + "</td></tr>"; %>
+
+  <% } %>
+</table>
 
 </body>
 </html>

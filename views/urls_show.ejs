@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <% include ../views/partials/_header.ejs %>
+</head>
+<body>
+
+<table>
+  <% if (shortURL) {  %>
+  <%= shortURL %>
+  <% } %>
+
+  <% for (var key in shortURL) { %>
+    <% var obj = shortURL[key]; %>
+    <% for (var prop in obj){ %>
+      <%- "<tr><td>" + prop + " - " + obj[prop] + "</td></tr>"; %>
+    <% } %>
+  <% } %>
+
+
+</table>
+
+</body>
+</html>

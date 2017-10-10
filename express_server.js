@@ -12,6 +12,7 @@ var urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+/*
 ////////////////
 templateVars = { urls: urlDatabase };
 //console.log(templateVars);
@@ -22,10 +23,12 @@ for (var key in templateVars) {
   }
 }
 /////////////////////
-
+*/
 
 // Tell app to use the its templating engine.
 app.set("view engine", "ejs");
+
+//app.set("views", "views/partials");
 
 app.get("/", (req, res) => {
   res.end("Hello!");
@@ -42,6 +45,11 @@ app.get("/hello", (req, res) => {
 app.get("/urls", (req, res) => {
   let templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
+});
+
+app.get("/urls/:id", (req, res) => {
+  let templateVars = { shortURL: req.params.id };
+  res.render("urls_show", templateVars);
 });
 
 app.listen(PORT, () => {
