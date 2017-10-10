@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>TinyApp</title>
+</head>
+<body>
+
+    <%= urls.urlDatabase %> --
+    <% for (var key in templateVars) { %>
+    <% var obj = templateVars[key]; %>
+  <% for (var prop in obj){ %>
+    <%= prop + " - " + obj[prop]; %>
+  <% } %>
+<% } %>
+
+
+</body>
+</html>

@@ -1,0 +1,24 @@
+{
+  "name": "tinyapp",
+  "version": "1.0.0",
+  "description": "Given a short URL, respond with the normal (long) URL.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/d-mclean/tinyapp.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/d-mclean/tinyapp/issues"
+  },
+  "homepage": "https://github.com/d-mclean/tinyapp#readme",
+  "dependencies": {
+    "ejs": "^2.5.7",
+    "express": "^4.16.2"
+  }
+}
