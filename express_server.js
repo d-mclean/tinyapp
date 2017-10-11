@@ -61,7 +61,8 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/urls/:id", (req, res) => {
   let templateVars = { shortURL: req.params.id,
-                        longURL: urlDatabase[req.params.id]};
+                        longURL: urlDatabase[req.params.id],
+                        username: req.cookies['username']};
   res.render("urls_show", templateVars);
 });
 
@@ -78,6 +79,14 @@ app.post("/urls", (req, res) => {
 app.post("/login", (req, res) => {
   //console.log(res.cookie);
   res.cookie('username', req.body.username);
+
+  // Redirect user back to the main index afterwards.
+  res.redirect('http://localhost:8080/urls');
+});
+
+app.post("/logout", (req, res) => {
+  //console.log(res.cookie);
+  res.clearCookie('username');
 
   // Redirect user back to the main index afterwards.
   res.redirect('http://localhost:8080/urls');
