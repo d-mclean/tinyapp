@@ -5,18 +5,21 @@
 </head>
 <body>
 
-<table>
+<table border=1><tr><td>ShortURL</td><td>URL</td><td></td></tr>
+
+  <tr><td>
   <% if (shortURL) {  %>
   <%= shortURL %>
   <% } %>
-
-  <% for (var key in shortURL) { %>
-    <% var obj = shortURL[key]; %>
-    <% for (var prop in obj){ %>
-      <%- "<tr><td>" + prop + " - " + obj[prop] + "</td></tr>"; %>
-    <% } %>
-  <% } %>
-
+  </td>
+  <td>
+      <form action="/urls/:id" method="POST" style="margin:15px;">
+      <!--<label for="longURL">Enter a URL:</label>-->
+      <input id="shortURL" type="hidden" name="shortURL" value="<%= shortURL %>">
+      <input id="longURL" type="text" name="longURL" placeholder="<%= longURL %>" style="width: 300px" value="<%= longURL %>"></td><td>
+      <input type="submit" value="Update">
+    </form>
+  </td></tr>
 
 </table>
 

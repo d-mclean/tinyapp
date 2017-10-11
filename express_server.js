@@ -15,6 +15,9 @@ var urlDatabase = {
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
+var cookieParser = require('cookie-parser');
+app.use(cookieParser());
+
 /*
 ////////////////
 templateVars = { urls: urlDatabase };
@@ -46,18 +49,20 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  let templateVars = { urls: urlDatabase };
-  console.log(templateVars)
+  let templateVars = { urls: urlDatabase,
+                        username: req.cookies['username'] };
+  //console.log(templateVars)
   res.render("urls_index", templateVars);
-});
-
-app.get("/urls/:id", (req, res) => {
-  let templateVars = { shortURL: req.params.id };
-  res.render("urls_show", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
+});
+
+app.get("/urls/:id", (req, res) => {
+  let templateVars = { shortURL: req.params.id,
+                        longURL: urlDatabase[req.params.id]};
+  res.render("urls_show", templateVars);
 });
 
 app.post("/urls", (req, res) => {
@@ -68,6 +73,35 @@ app.post("/urls", (req, res) => {
 
   //res.send("Ok");         // Respond with 'Ok' (we will replace this)
   res.redirect('http://localhost:8080/urls/' + strNewId)
+});
+
+app.post("/login", (req, res) => {
+  //console.log(res.cookie);
+  res.cookie('username', req.body.username);
+
+  // Redirect user back to the main index afterwards.
+  res.redirect('http://localhost:8080/urls');
+});
+
+app.post("/urls/:id", (req, res) => {
+
+  //console.log(urlDatabase[req.body.shortURL]);
+  // Update the longURL in the db.
+  urlDatabase[req.body.shortURL] = req.body.longURL;
+
+  // Redirect user back to the main index afterwards.
+  res.redirect('http://localhost:8080/urls');
+
+});
+
+app.post("/urls/:id/delete", (req, res) => {
+  //console.log(req.params.id);
+  // Delete record from db.
+  delete urlDatabase[req.params.id];
+
+  // Redirect user back to the main index afterwards.
+  res.redirect('http://localhost:8080/urls');
+
 });
 
 app.get("/u/:shortURL", (req, res) => {
