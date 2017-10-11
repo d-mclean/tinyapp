@@ -12,6 +12,9 @@ var urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const bodyParser = require("body-parser");
+app.use(bodyParser.urlencoded({extended: true}));
+
 /*
 ////////////////
 templateVars = { urls: urlDatabase };
@@ -44,6 +47,7 @@ app.get("/hello", (req, res) => {
 
 app.get("/urls", (req, res) => {
   let templateVars = { urls: urlDatabase };
+  console.log(templateVars)
   res.render("urls_index", templateVars);
 });
 
@@ -52,6 +56,39 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+app.get("/urls/new", (req, res) => {
+  res.render("urls_new");
+});
+
+app.post("/urls", (req, res) => {
+  // console.log(req.body);  // debug statement to see POST parameters
+  let strNewId = generateRandomString();
+  // Add new record to db, generating a new id as needed.
+  urlDatabase[strNewId] = req.body.longURL;
+
+  //res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  res.redirect('http://localhost:8080/urls/' + strNewId)
+});
+
+app.get("/u/:shortURL", (req, res) => {
+  let longURL = urlDatabase[req.params.shortURL];
+
+  // Redirect the user to the long version of the URL.
+  res.redirect(longURL);
+});
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
+
+// Generate a random six character string.
+function generateRandomString() {
+  let strId = "";
+  let possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+  for (let i = 0; i < 6; i++) {
+    strId += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+
+  return strId;
+}

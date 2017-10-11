@@ -8,5 +8,5 @@ Given a short URL, respond with the normal (long) URL.
 
 This program should be executed from the command line, in the following manner:
 
-`node download_avatars.js jquery jquery`
+`node express_server.js`
 
