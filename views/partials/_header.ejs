@@ -1,16 +1,14 @@
-  <title>TinyApp</title>
+<head>
+<title>TinyApp</title>
+</head>
 
-  <% if (username) {  %>
-    Currently using: <%= username %>
-  <form action="/logout" method="POST" style="margin:5px;">
-  <input type="submit" value="logout">
-  </form>
+<body>
+<% if (user) { %>
+  <% if (user.id) { %>
+    Current logged in <%= user.id %> - <a href="/logout">Logout</a>
   <% } else { %>
-
-    <form action="/login" method="POST" style="margin:5px;">
-      <label for="username">Name:</label>
-      <input id="username" type="text" name="username" placeholder="Enter username" style="width: 100px">
-      <input type="submit" value="Submit">
-    </form>
-
-  <% } %>
+    <a href="/register">Register</a> - <a href="/login">Login</a>
+  <%  }%>
+  <% } else { %>
+  <a href="/register">Register</a> - <a href="/login">Login</a>
+<% } %>

@@ -67,9 +67,18 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
+  let objUser = {
+    id: req.cookies['user_id'],
+    email: req.cookies['email']
+    //,    password: req.body.password
+  };
+
   let templateVars = { urls: urlDatabase,
-                        username: req.cookies['username'] };
+                        user: objUser };
+
   //console.log(templateVars)
+  // console.log(objUser.user_id)
+
   res.render("urls_index", templateVars);
 });
 
@@ -78,15 +87,46 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
+  let objUser = {
+    id: req.cookies['user_id'],
+    email: req.cookies['email']
+    //,    password: req.body.password
+  };
+
   let templateVars = { urls: urlDatabase,
-                        username: '' };
+                        user: objUser };
   res.render("urls_register", templateVars);
 });
 
+app.get("/login", (req, res) => {
+  let objUser = {
+    id: req.cookies['user_id'],
+    email: req.cookies['email']
+    //,    password: req.body.password
+  };
+  let templateVars = { urls: urlDatabase,
+                        user: objUser };
+  res.render("urls_login", templateVars);
+});
+
+app.get("/logout", (req, res) => {
+  res.clearCookie('user_id');
+  res.clearCookie('password');
+
+  // Redirect user back to the main index afterwards.
+  res.redirect('http://localhost:8080/urls');
+});
+
 app.get("/urls/:id", (req, res) => {
+  let objUser = {
+    id: req.cookies['user_id'],
+    email: req.cookies['email']
+    //,    password: req.body.password
+  };
+
   let templateVars = { shortURL: req.params.id,
                         longURL: urlDatabase[req.params.id],
-                        username: req.cookies['username']};
+                        user: objUser};
   res.render("urls_show", templateVars);
 });
 
@@ -101,41 +141,82 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  //console.log(res.cookie);
-  res.cookie('username', req.body.username);
+  let boolValidEmail = false;
+  let strUser_id;
 
-  // Redirect user back to the main index afterwards.
-  res.redirect('http://localhost:8080/urls');
+  // Ensure email address isn't already in db.
+  for (let user in users){
+    if (users[user].email == req.body.email) {
+      if(users[user].password == req.body.password) {
+        boolValidEmail = true;
+        strUser_id = users[user].id;
+      }
+    }
+  }
+
+  if (boolValidEmail){
+    res.cookie('user_id', strUser_id);
+    res.cookie('email', req.body.email);
+    res.cookie('password', req.body.password);
+
+    // Redirect user back to the main index afterwards.
+    res.redirect('http://localhost:8080/urls');
+  } else {
+    // Invalid email/password so return 403.
+    res.statusCode = 403;
+    res.end("Invalid email/password combination!");
+  }
+
 });
 
 app.post("/logout", (req, res) => {
-  //console.log(res.cookie);
-  res.clearCookie('username');
+  res.clearCookie('user_id');
+  res.clearCookie('email');
+  res.clearCookie('password');
 
   // Redirect user back to the main index afterwards.
   res.redirect('http://localhost:8080/urls');
 });
 
 app.post("/register", (req, res) => {
-  // Add new record to db, generating a new id as needed.
-  let strNewId = generateRandomString();
+  // If this boolean is false, don't register user.
+  let boolRegister = true;
+  let strMsg = "Invalid email or password!";
 
-  // Set cookie for the new user.
-  res.cookie('user_id', strNewId);
-  res.cookie('username', req.body.email);
-  res.cookie('password', req.body.password);
+  // Ensure email address isn't already in db.
+  for (let user in users){
+    if (users[user].email == req.body.email){
+      boolRegister = false;
+      strMsg = "Email already exists!";
+    }
+  }
 
-  let objUser = {
-    id: strNewId,
-    email: req.body.email,
-    password: req.body.password
-  };
+  // Ensure user has entered valid values for email/password.
+  if (req.body.email !== '' && req.body.password !== '' && boolRegister) {
+    // Add new record to db, generating a new id as needed.
+    let strNewId = generateRandomString();
 
-  // Add user to database.
-  users[strNewId] = objUser;
+    // Set cookie for the new user.
+    res.cookie('user_id', strNewId);
+    res.cookie('email', req.body.email);
+    res.cookie('password', req.body.password);
 
-  // Redirect user back to the main index afterwards.
-  res.redirect('http://localhost:8080/urls');
+    let objUser = {
+      id: strNewId,
+      email: req.body.email,
+      password: req.body.password
+    };
+
+    // Add user to database.
+    users[strNewId] = objUser;
+
+    // Redirect user back to the main index afterwards.
+    res.redirect('http://localhost:8080/urls');
+  } else {
+    // Send back a 404 status code.
+    res.statusCode = 404;
+    res.end(strMsg);
+  }
 });
 
 app.post("/urls/:id", (req, res) => {
