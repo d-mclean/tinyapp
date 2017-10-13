@@ -5,16 +5,18 @@
   <tr><td>LongURL</td><td>ShortURL</td><td>Update</td><td>Delete</td></tr>
   <% for (var key in urls) { %>
     <% var obj = urls[key]; %>
-      <%- "<tr><td>" + urls[key] + "</td><td>" + key + "</td>"; %>
-      <td>
-      <a href="/urls/<%= key %>">Edit!</a>
-      </td>
-      <td>
-        <form method="POST" action="/urls/<%= key %>/delete">
-          <input type="submit" value="Delete!" />
-        </form>
-      </td>
-      </tr>
+      <% for (var l in urls[key]) { %>
+        <%- "<tr><td>" + urls[key][l] + "</td><td>" + key + "</td>"; %>
+        <td>
+        <a href="/urls/<%= key %>">Edit!</a>
+        </td>
+        <td>
+          <form method="POST" action="/urls/<%= key %>/delete">
+            <input type="submit" value="Delete!" />
+          </form>
+        </td>
+        </tr>
+      <% } %>
   <% } %>
 
 </table>

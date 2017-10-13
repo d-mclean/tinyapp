@@ -5,10 +5,10 @@
 <body>
 <% if (user) { %>
   <% if (user.id) { %>
-    Current logged in <%= user.id %> - <a href="/logout">Logout</a>
+   <b>Currently logged in</b> [<%= user.id %>] - <a href="/logout">Logout</a>
   <% } else { %>
     <a href="/register">Register</a> - <a href="/login">Login</a>
   <%  }%>
   <% } else { %>
   <a href="/register">Register</a> - <a href="/login">Login</a>
-<% } %>
+<% } %><p>
