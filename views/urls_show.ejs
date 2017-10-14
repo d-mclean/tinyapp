@@ -19,7 +19,9 @@
       <input id="longURL" type="text" name="longURL" style="width: 300px" value="<% for (var url in longURL) { %><%= longURL[url] %><% } %>"></td><td>
       <% if(user.id == userID)  {%>
       <input type="submit" value="Update">
-      <% } %>
+      <% }  else { %>
+      [Login to edit]
+      <% }%>
     </form>
   </td></tr>
 

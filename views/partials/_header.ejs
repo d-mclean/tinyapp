@@ -2,10 +2,10 @@
 <title>TinyApp</title>
 </head>
 
-<body>
+<body style="font-size:16px; padding:20px;">
 <% if (user) { %>
   <% if (user.id) { %>
-   <b>Currently logged in</b> [<%= user.id %>] - <a href="/logout">Logout</a>
+   <b>Currently logged in</b> [<%= user.email %><b>]</b> - <a href="/urls/new">New URL</a> - <a href="/urls">List URLs</a> - <a href="/logout">Logout</a>
   <% } else { %>
     <a href="/register">Register</a> - <a href="/login">Login</a>
   <%  }%>

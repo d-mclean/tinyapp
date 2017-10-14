@@ -1,6 +1,6 @@
 /* 20171010 DM - LHL w2d2
 
-  Project: TinyApp
+  Project: TinyApp - a simple URL shortener
 
 */
 var express = require("express");
@@ -23,8 +23,18 @@ var PORT = process.env.PORT || 8080; // default port 8080
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
+// Note: This may need to be commented out and/or removed.
 var cookieParser = require('cookie-parser');
 app.use(cookieParser());
+
+const cookieSession = require('cookie-session');
+app.use(cookieSession({
+  name: 'session',
+  keys: ['key1', 'key13', 'keykey1313'],
+
+  // Cookie Options
+  maxAge: 24 * 60 * 60 * 1000 // 24 hours
+}))
 
 const bcrypt = require('bcrypt');
 
@@ -68,7 +78,7 @@ for (var key in templateVars) {
 /////////////////////
 */
 
-// Tell app to use the its templating engine.
+// Tell app to use the templating engine.
 app.set("view engine", "ejs");
 
 //app.set("views", "views/partials");
@@ -87,33 +97,30 @@ app.get("/hello", (req, res) => {
 
 app.get("/urls", (req, res) => {
   let objUser = {
-    id: req.cookies['user_id'],
-    email: req.cookies['email']
+    id: req.session.user_id,
+    email: req.session.email
     //,    password: req.body.password
   };
 
   // Only display URLs owned by the logged in user.
-  let urlUserDatabase = urlsForUser(req.cookies['user_id']);
+  let urlUserDatabase = urlsForUser(req.session.user_id);
 
   let templateVars = { urls: urlUserDatabase,//urlDatabase,
                         user: objUser };
-
-  //console.log(templateVars)
-  //console.log(urlDatabase);
 
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
   let objUser = {
-    id: req.cookies['user_id'],
-    email: req.cookies['email']
+    id: req.session.user_id,
+    email: req.session.email
     //,    password: req.body.password
   };
 
   let templateVars = { urls: urlDatabase,
                         user: objUser };
-  if (req.cookies['user_id']) {
+  if (req.session.user_id) {
     res.render("urls_new", templateVars);
   } else {
     // Redirect user to login if they haven't.
@@ -123,8 +130,8 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/register", (req, res) => {
   let objUser = {
-    id: req.cookies['user_id'],
-    email: req.cookies['email']
+    id: req.session.user_id,
+    email: req.session.email
     //,    password: req.body.password
   };
 
@@ -135,8 +142,8 @@ app.get("/register", (req, res) => {
 
 app.get("/login", (req, res) => {
   let objUser = {
-    id: req.cookies['user_id'],
-    email: req.cookies['email']
+    id: req.session.user_id,
+    email: req.session.email
     //,    password: req.body.password
   };
   let templateVars = { urls: urlDatabase,
@@ -146,9 +153,8 @@ app.get("/login", (req, res) => {
 });
 
 app.get("/logout", (req, res) => {
-  res.clearCookie('user_id');
-  res.clearCookie('password');
-  res.clearCookie('email');
+  // Destroy the session (i.e. clear the cookies).
+  req.session = null
 
   // Redirect user back to the main index afterwards.
   res.redirect('http://localhost:8080/urls');
@@ -156,8 +162,8 @@ app.get("/logout", (req, res) => {
 
 app.get("/urls/:id", (req, res) => {
   let objUser = {
-    id: req.cookies['user_id'],
-    email: req.cookies['email']
+    id: req.session.user_id,
+    email: req.session.email
     //,    password: req.body.password
   };
 
@@ -166,11 +172,9 @@ app.get("/urls/:id", (req, res) => {
   // Get the owner of the specific URL.
   for (linkID in urlDatabase[req.params.id]){
     // Ensure the current user is logged in and authorized to edit the url.
-    if (linkID == req.cookies['user_id']) {
+    if (linkID == req.session.user_id) {
       console.log("Authorized access")
-      // console.log(urlDatabase[req.params.id])
-      // urlDatabase[req.params.id] = req.params.longURL;
-      // console.log(urlDatabase[req.params.id])
+
     } else {
       console.log(linkID)
     }
@@ -186,9 +190,8 @@ app.get("/urls/:id", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  //console.log(req.body);  // debug statement to see POST parameters
   let strNewId = generateRandomString();
-  let strUserId = req.cookies['user_id'];
+  let strUserId = req.session.user_id;
   let newURL = {};
 
   // Create a new URL to add to the DB, ensuring owner is used as the index of the record.
@@ -197,7 +200,6 @@ app.post("/urls", (req, res) => {
   // Add new record to db, generating a new id as needed.
   urlDatabase[strNewId] = newURL;
 
-  //res.send("Ok");         // Respond with 'Ok' (we will replace this)
   res.redirect('http://localhost:8080/urls/' + strNewId)
 });
 
@@ -219,9 +221,9 @@ app.post("/login", (req, res) => {
   }
 
   if (boolValidEmail){
-    res.cookie('user_id', strUser_id);
-    res.cookie('email', req.body.email);
-    res.cookie('password', hashedPassword);
+    req.session.user_id = strUser_id;
+    req.session.email = req.body.email;
+    req.session.password = hashedPassword;
 
     // Redirect user back to the main index afterwards.
     res.redirect('http://localhost:8080/urls');
@@ -230,13 +232,11 @@ app.post("/login", (req, res) => {
     res.statusCode = 403;
     res.end("Invalid email/password combination!");
   }
-
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie('user_id');
-  res.clearCookie('email');
-  res.clearCookie('password');
+  // Destroy the session (i.e. clear the cookies).
+  req.session = null
 
   // Redirect user back to the main index afterwards.
   res.redirect('http://localhost:8080/urls');
@@ -264,9 +264,9 @@ app.post("/register", (req, res) => {
     const hashedPassword = bcrypt.hashSync(req.body.password, 10);
 
     // Set cookie for the new user.
-    res.cookie('user_id', strNewId);
-    res.cookie('email', req.body.email);
-    res.cookie('password', hashedPassword);
+    req.session.user_id = strNewId;
+    req.session.email = req.body.email;
+    req.session.password = hashedPassword;
 
     let objUser = {
       id: strNewId,
@@ -290,7 +290,7 @@ app.post("/urls/:id", (req, res) => {
   // Get the owner of the specific URL.
   for (let owner in urlDatabase[req.body.shortURL]){
     // Ensure the current user is logged in and authorized to edit the url.
-    if (owner == req.cookies['user_id']) {
+    if (owner == req.session.user_id) {
       // Update the longURL in the db.
       urlDatabase[req.body.shortURL][owner] = req.body.longURL;
     } else {
@@ -308,7 +308,7 @@ app.post("/urls/:id", (req, res) => {
 app.post("/urls/:id/delete", (req, res) => {
   // Ensure the current user is the owner of the URL.
   for (let owner in urlDatabase[req.params.id]){
-    if(req.cookies['user_id'] === owner){
+    if(req.session.user_id === owner){
       //Delete record from db.
       delete urlDatabase[req.params.id];
     }
@@ -320,18 +320,14 @@ app.post("/urls/:id/delete", (req, res) => {
 
 app.get("/u/:shortURL", (req, res) => {
   let longURL = urlDatabase[req.params.shortURL];
-  let l;
-  console.log(longURL);
-  console.log(typeof longURL)
-  console.log(longURL[0])
+  let link;
 
   for (var key in longURL){
-    l = longURL[key]
+    link = longURL[key]
   }
-  console.log(l)
+
   // Redirect the user to the long version of the URL.
-  //res.redirect(longURL);
-  res.redirect(l);
+  res.redirect(link);
 });
 
 app.listen(PORT, () => {
@@ -341,25 +337,21 @@ app.listen(PORT, () => {
 // Generate a random six character string.
 function generateRandomString() {
   let strId = "";
-  let possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
   for (let i = 0; i < 6; i++) {
-    strId += possible.charAt(Math.floor(Math.random() * possible.length));
+    strId += alphabet.charAt(Math.floor(Math.random() * alphabet.length));
   }
 
   return strId;
 }
 
-// Create subset of full db filtered by the given user id.
+// Create subset of the full db filtered by the given user id.
 function urlsForUser(id){
-  //user3RandomID
-
   let templateVars = {};
-  //console.log(urlDatabase)
+
   for (let key in urlDatabase){
-      //console.log("key: " +urlDatabase[key]+" id:" +id)
       for (let k in urlDatabase[key]) {
-        //console.log("K:" + k)
         if (k === id){
           templateVars[key] = urlDatabase[key];
         }
