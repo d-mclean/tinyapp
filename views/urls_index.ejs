@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
   <% include ../views/partials/_header.ejs %>
-<table border=1>
-  <tr><td>LongURL</td><td>ShortURL</td><td>Update</td><td>Delete</td><td>URL [open link in new tab]</td><td>Copy to Clipboard</td></tr>
+<table id="urlTable" border=1>
+  <tr><td>LongURL</td><td>ShortURL</td><td>Update</td><td>Delete</td><td>URL [open link in new tab]</td><td>Copy</td></tr>
   <% for (var key in urls) { %>
     <% var obj = urls[key]; %>
       <% for (var l in urls[key]) { %>
@@ -16,7 +16,12 @@
           </form>
         </td>
         <td>
-          <a href="http://localhost:8080/u/<%= key %>" target="_blank">http://localhost:8080/u/<%= key %></a>
+          <a href="http://localhost:8080/u/<%= key %>" target="_blank"><div id="copy-target-<%= key %>">http://localhost:8080/u/<%= key %></div></a>
+        </td>
+        <td>
+          <button class="copy-button" data-clipboard-action="copy" data-clipboard-target="#copy-target-<%= key %>">
+              <img src="/public/clippy.svg" width="13" alt="Copy to clipboard">
+          </button>
         </td>
         </tr>
       <% } %>
@@ -25,5 +30,17 @@
 </table>
 
 
+<script>
+  let clipboard = new Clipboard('.copy-button');
+  let uTable = document.getElementById("urlTable");
+  let rowCount = uTable.rows.length;
+  var x = document.getElementById("urlTable").rows.length;
+
+  if (rowCount == 1) {
+    uTable.style.display = "none";
+  } else {
+    uTable.style.display = "table";
+  }
+</script>
 </body>
 </html>

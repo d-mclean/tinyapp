@@ -7,19 +7,6 @@ var express = require("express");
 var app = express();
 var PORT = process.env.PORT || 8080; // default port 8080
 
-// var urlDatabase = {
-//   "b2xVn2": "http://www.lighthouselabs.ca",
-//   "9sm5xK": "http://www.google.com"
-// };
-
-// var urlDatabase = {
-//   "user3RandomID": {
-//     "b2xVn2": "http://www.lighthouselabs.ca"},
-//   "user3RandomID": {
-//     "9sm5xK": "http://www.google.com"}
-// };
-
-
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
@@ -65,18 +52,10 @@ const users = {
     password: bcrypt.hashSync("test", 10)
   }
 };
-/*
-////////////////
-templateVars = { urls: urlDatabase };
-//console.log(templateVars);
-for (var key in templateVars) {
-  var obj = templateVars[key];
-  for (var prop in obj){
-    console.log(prop + " - " + obj[prop]);
-  }
-}
-/////////////////////
-*/
+
+// Open up a folder to serve some extra files.
+//app.use(express.static('/public'));
+app.use('/public', express.static(__dirname + '/public'));
 
 // Tell app to use the templating engine.
 app.set("view engine", "ejs");
@@ -108,7 +87,12 @@ app.get("/urls", (req, res) => {
   let templateVars = { urls: urlUserDatabase,//urlDatabase,
                         user: objUser };
 
-  res.render("urls_index", templateVars);
+  // As per design specs, if the user isn't logged in, redirect them to the login page.
+  if (req.session.user_id){
+    res.render("urls_index", templateVars);
+  } else {
+    res.redirect('http://localhost:8080/login')
+  }
 });
 
 app.get("/urls/new", (req, res) => {
@@ -120,6 +104,7 @@ app.get("/urls/new", (req, res) => {
 
   let templateVars = { urls: urlDatabase,
                         user: objUser };
+
   if (req.session.user_id) {
     res.render("urls_new", templateVars);
   } else {
@@ -137,7 +122,14 @@ app.get("/register", (req, res) => {
 
   let templateVars = { urls: urlDatabase,
                         user: objUser };
-  res.render("urls_register", templateVars);
+
+  // As per design specs, redirect user to /urls if they are logged in.
+  if (req.session.user_id){
+    res.redirect('http://localhost:8080/urls');
+  } else {
+    res.render("urls_register", templateVars);
+  }
+
 });
 
 app.get("/login", (req, res) => {
@@ -149,7 +141,12 @@ app.get("/login", (req, res) => {
   let templateVars = { urls: urlDatabase,
                         user: objUser };
 
-  res.render("urls_login", templateVars);
+  // As per design specs, redirect user to /urls if they are logged in.
+  if (req.session.user_id){
+    res.redirect('http://localhost:8080/urls');
+  } else {
+    res.render("urls_login", templateVars);
+  }
 });
 
 app.get("/logout", (req, res) => {
@@ -173,20 +170,20 @@ app.get("/urls/:id", (req, res) => {
   for (linkID in urlDatabase[req.params.id]){
     // Ensure the current user is logged in and authorized to edit the url.
     if (linkID == req.session.user_id) {
-      console.log("Authorized access")
+      //console.log("Authorized access")
+      let templateVars = { shortURL: req.params.id,
+                            longURL: urlDatabase[req.params.id],
+                            userID: linkID,
+                            user: objUser};
 
+      res.render("urls_show", templateVars);
     } else {
       console.log(linkID)
     }
 
   }
 
-  let templateVars = { shortURL: req.params.id,
-                        longURL: urlDatabase[req.params.id],
-                        userID: linkID,
-                        user: objUser};
 
-  res.render("urls_show", templateVars);
 });
 
 app.post("/urls", (req, res) => {
@@ -200,7 +197,9 @@ app.post("/urls", (req, res) => {
   // Add new record to db, generating a new id as needed.
   urlDatabase[strNewId] = newURL;
 
-  res.redirect('http://localhost:8080/urls/' + strNewId)
+  // Redirect user to full list of URLs (although below code might be better?)
+  //res.redirect('http://localhost:8080/urls/' + strNewId)
+  res.redirect('http://localhost:8080/urls/')
 });
 
 app.post("/login", (req, res) => {
